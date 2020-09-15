@@ -1,13 +1,36 @@
-from bs4 import BeautifulSoup
-import re
-import requests
-import tempfile
-import os
-import zipfile
+#######################################
+##  BAD Gumby's ElvUI Update Script  ##
+#######################################
 
-# You will need to set this to the WoW addons directory
-wow_addons = r"F:\Games\Blizzard Games\World of Warcraft\_retail_\Interface\AddOns"
+# Imports and their uses
+from tkinter import Tk # Used for addons folder selection file dialog box
+from tkinter.filedialog import askdirectory # Used for addons folder selection file dialog box
+import requests # Used to get webpage HTML
+from bs4 import BeautifulSoup # Used to parse HTML
+import re # Used for regex
+import tempfile # Used to determine the OS defined temp directory
+import os # Used for OS path joining and testing
+import zipfile # Used to uncompress zip file
 
+# Reads the config.txt file next to the script to get the 'Addons' directory
+cfg = open('config.txt','r')
+cfgtxt = cfg.readline()
+cfg.close()
+if cfgtxt == "directory=" or cfgtxt == "":
+	print("WoW Addon directory not selected.")
+	newpath = askdirectory(title='Select the "Addons" directory',initialdir = '/',mustexist = 'TRUE')
+	if newpath == "":
+		print("No directory selected. Exiting...")
+		exit()
+	else:
+		cfg = open('config.txt','w+')
+		cfg.write("directory=" + newpath)
+		wow_addons = newpath
+		cfg.close()
+else:
+	wow_addons = cfgtxt.replace("directory=","")
+
+# Regex pattern used to get version from the ElvUI.toc file
 pattern = re.compile("## Version: \d+\.\d+")
 
 # Get currently installed version
@@ -30,10 +53,13 @@ ver = "\d+\.\d+"
 base = "https://www.tukui.org"
 outf = os.path.join(myTemp, "elvui.zip")
 
+# Download file function
 def download(url, file_name):
     with open(file_name, "wb") as file:
         response = requests.get(url)
         file.write(response.content)
+
+# Unzip file function
 def unzipme(myFile, myPath):
 	with zipfile.ZipFile(myFile, 'r') as zip_ref:
 		zip_ref.extractall(myPath)
