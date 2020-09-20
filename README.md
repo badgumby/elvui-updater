@@ -8,3 +8,5 @@ This script requires the following non-Standard Library Python components:
  	- Used to get webpage HTML
  - bs4 (BeautifulSoup)
 	- Used to parse the HTML results
+ - tkinter
+ 	- Used for addons folder selection file dialog box
