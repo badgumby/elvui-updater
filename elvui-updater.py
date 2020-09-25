@@ -11,6 +11,8 @@ import re # Used for regex
 import tempfile # Used to determine the OS defined temp directory
 import os # Used for OS path joining and testing
 import zipfile # Used to uncompress zip file
+import time # Used to sleep
+from tqdm import tqdm # Used for download progress bar
 
 # Reads the config.txt file next to the script to get the 'Addons' directory
 cfg = open('config.txt','r')
@@ -18,7 +20,7 @@ cfgtxt = cfg.readline()
 cfg.close()
 if cfgtxt == "directory=" or cfgtxt == "":
 	print("WoW Addon directory not selected.")
-	newpath = askdirectory(title='Select the "Addons" directory',initialdir = '/',mustexist = 'TRUE')
+	newpath = askdirectory(title='Select the "Addons" directory',initialdir = '/', mustexist = 'TRUE')
 	if newpath == "":
 		print("No directory selected. Exiting...")
 		exit()
@@ -55,9 +57,19 @@ outf = os.path.join(myTemp, "elvui.zip")
 
 # Download file function
 def download(url, file_name):
-    with open(file_name, "wb") as file:
-        response = requests.get(url)
-        file.write(response.content)
+    resp = requests.get(url, stream=True)
+    total = int(resp.headers.get('content-length', 0))
+    
+    with open(file_name, 'wb') as file, tqdm(
+    	desc=file_name,
+    	total=total,
+    	unit='iB',
+    	unit_scale=True,
+    	unit_divisor=1024,
+    ) as bar:
+        for data in resp.iter_content(chunk_size=1024):
+            size = file.write(data)
+            bar.update(size)
 
 # Unzip file function
 def unzipme(myFile, myPath):
@@ -94,3 +106,5 @@ if myLink != "Not Found":
 else:
 	print("Download link was not found!")
 	print("Could not update ElvUI")
+
+time.sleep(5)
