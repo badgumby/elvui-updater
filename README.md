@@ -8,3 +8,5 @@ This script requires the following non-Standard Library Python components:
  	- Used to get webpage HTML
  - bs4 (BeautifulSoup)
 	- Used to parse the HTML results
+ - lxml
+ 	- Used by BeautifulSoup to parse the DOM
