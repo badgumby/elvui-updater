@@ -6,6 +6,8 @@ This script requires the following non-Standard Library Python components:
 
  - requests
  	- Used to get webpage HTML
+ - tqdm
+	- Used to display download progress
  - bs4 (BeautifulSoup)
 	- Used to parse the HTML results
  - lxml
