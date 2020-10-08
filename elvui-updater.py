@@ -13,6 +13,7 @@ import os # Used for OS path joining and testing
 import zipfile # Used to uncompress zip file
 import time # Used to sleep
 from tqdm import tqdm # Used for download progress bar
+from pathlib import Path # Used to handle slashes in paths in Windows and MacOS
 
 # Reads the config.txt file next to the script to get the 'Addons' directory
 cfg = open('config.txt','r')
@@ -36,7 +37,8 @@ else:
 pattern = re.compile("## Version: \d+\.\d+")
 
 # Get currently installed version
-elvFile = wow_addons + "\ElvUI\ElvUI.toc"
+elvFile = Path(wow_addons,'ElvUI','ElvUI.toc')
+
 if os.path.exists(elvFile):
 	elvOpen = open(elvFile, 'r')
 	elvRead = elvOpen.read()
@@ -101,6 +103,7 @@ if myLink != "Not Found":
 		print("ElvUI is not the newest version available.")
 		print("Downloading to: " + outf + "...")
 		download(myLink, outf)
+		print("Extracting to " + wow_addons)
 		unzipme(outf, wow_addons)
 		print("ElvUI has been updated to version " + str(webVer[0]) + ".")
 else:
