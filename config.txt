@@ -1,1 +1,1 @@
-directory=/Volumes/JetDrive/Games/World of Warcraft/_retail_/Interface/AddOns
+directory=F:/Games/Blizzard Games/World of Warcraft/_retail_/Interface/AddOns
