@@ -15,11 +15,25 @@ import time # Used to sleep
 from tqdm import tqdm # Used for download progress bar
 
 # Reads the config.txt file next to the script to get the 'Addons' directory
-cfg = open('config.txt','r')
-cfgtxt = cfg.readline()
-cfg.close()
-if cfgtxt == "directory=" or cfgtxt == "":
-	print("WoW Addon directory not selected.")
+if os.path.exists('config.txt'):
+	cfg = open('config.txt','r')
+	cfgtxt = cfg.readline()
+	cfg.close()
+	if cfgtxt == "directory=" or cfgtxt == "":
+		print("WoW Addon directory not selected.")
+		newpath = askdirectory(title='Select the "Addons" directory',initialdir = '/', mustexist = 'TRUE')
+		if newpath == "":
+			print("No directory selected. Exiting...")
+			exit()
+		else:
+			cfg = open('config.txt','w+')
+			cfg.write("directory=" + newpath)
+			wow_addons = newpath
+			cfg.close()
+	else:
+		wow_addons = cfgtxt.replace("directory=","")
+else:
+	print("Updater config file not found.")
 	newpath = askdirectory(title='Select the "Addons" directory',initialdir = '/', mustexist = 'TRUE')
 	if newpath == "":
 		print("No directory selected. Exiting...")
@@ -29,8 +43,6 @@ if cfgtxt == "directory=" or cfgtxt == "":
 		cfg.write("directory=" + newpath)
 		wow_addons = newpath
 		cfg.close()
-else:
-	wow_addons = cfgtxt.replace("directory=","")
 
 # Regex pattern used to get version from the ElvUI.toc file
 pattern = re.compile("## Version: \d+\.\d+")
