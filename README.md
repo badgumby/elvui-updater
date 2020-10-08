@@ -12,5 +12,3 @@ This script requires the following non-Standard Library Python components:
 	- Used to parse the HTML results
  - lxml
  	- Used by BeautifulSoup to parse the DOM
-- pathlib
-	- Used by for building OS paths for cross-platform support
