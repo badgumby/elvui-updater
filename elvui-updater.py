@@ -13,6 +13,7 @@ import os # Used for OS path joining and testing
 import zipfile # Used to uncompress zip file
 import time # Used to sleep
 from tqdm import tqdm # Used for download progress bar
+import json # Used for config file
 
 # Colors for highlighting text (not all are used)
 class bcolors:
@@ -24,35 +25,35 @@ class bcolors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
 
-# Reads the config.txt file next to the script to get the 'Addons' directory
-if os.path.exists('config.txt'):
-	cfg = open('config.txt','r')
-	cfgtxt = cfg.readline()
-	cfg.close()
-	if cfgtxt == "directory=" or cfgtxt == "":
-		print(f"{bcolors.BOLD}{bcolors.BLUE}WoW Addon directory not selected.{bcolors.ENDC}")
-		newpath = askdirectory(title='Select the "Addons" directory',initialdir = '/', mustexist = 'TRUE')
-		if newpath == "":
-			print(f"{bcolors.BOLD}{bcolors.RED}No directory selected. Exiting...{bcolors.ENDC}")
-			exit()
-		else:
-			cfg = open('config.txt','w+')
-			cfg.write("directory=" + newpath)
-			wow_addons = newpath
-			cfg.close()
-	else:
-		wow_addons = cfgtxt.replace("directory=","")
-else:
-	print(f"{bcolors.BOLD}{bcolors.RED}Updater config file not found.{bcolors.ENDC}")
+# Select a directory
+def selectDir():
+	global wow_addons
 	newpath = askdirectory(title='Select the "Addons" directory',initialdir = '/', mustexist = 'TRUE')
 	if newpath == "":
 		print(f"{bcolors.BOLD}{bcolors.RED}No directory selected. Exiting...{bcolors.ENDC}")
 		exit()
 	else:
-		cfg = open('config.txt','w+')
-		cfg.write("directory=" + newpath)
-		wow_addons = newpath
-		cfg.close()
+		with open('config.json','w+') as f:
+			wow_addons = newpath
+			jsonDir = {'directory': newpath}
+			json.dump(jsonDir, f)
+
+# Reads the config.txt file next to the script to get the 'Addons' directory
+if os.path.exists('config.json'):
+	with open('config.json','r') as f:
+		cfg = f.read()
+		if cfg == "":
+			selectDir()
+		else:
+			cfgJson = json.loads(cfg)
+			if "directory" not in cfgJson or cfgJson["directory"] == "":
+				print(f"{bcolors.BOLD}{bcolors.BLUE}WoW Addon directory not selected.{bcolors.ENDC}")
+				selectDir()
+			else:
+				wow_addons = cfgJson["directory"]
+else:
+	print(f"{bcolors.BOLD}{bcolors.RED}Updater config file not found.{bcolors.ENDC}")
+	selectDir()
 
 # Regex pattern used to get version from the ElvUI.toc file
 pattern = re.compile("## Version: \d+\.\d+")
@@ -60,6 +61,7 @@ pattern = re.compile("## Version: \d+\.\d+")
 # Get currently installed version
 elvFile = os.path.join(wow_addons,'ElvUI','ElvUI.toc')
 
+# Check to see if ElvUI is already installed in the WoW Addons directory
 if os.path.exists(elvFile):
 	elvOpen = open(elvFile, 'r')
 	elvRead = elvOpen.read()
@@ -69,14 +71,20 @@ if os.path.exists(elvFile):
 else:
 	myVer = "Not installed"
 
+# Print out to user the installed version info
 print(f"Currently installed version of ElvUI: {bcolors.BOLD}{bcolors.BLUE}" + myVer + f"{bcolors.ENDC}")
 
+# Set temp directory for downloading the new version (if needed)
 myTemp = tempfile.gettempdir()
-
-elv = "\/downloads\/elvui-.*zip"
-ver = "\d+\.\d+"
-base = "https://www.tukui.org"
 outf = os.path.join(myTemp, "elvui.zip")
+
+# Regex for ElvUI file link search
+elv = '\/downloads\/elvui-.*zip'
+# Regex for ElvUI file version search
+ver = '\d+\.\d+'
+# ElvUI Official website
+base = 'https://www.tukui.org'
+
 
 # Download file function
 def download(url, file_name):
@@ -104,16 +112,23 @@ elvPage = requests.get("https://www.tukui.org/download.php?ui=elvui")
 
 soup = BeautifulSoup(elvPage.text, "lxml")
 
+# Find all links on the Tukui website
 links = []
 for link in soup.findAll('a'):
     links.append(link.get('href'))
 
+# Set default value for 'myLink' variable
 myLink = "Not Found"
+
+# Loop thru links, search link strings via regex to get version, then compare to installed version on this machine
 for jibb in links:
 	if re.search(elv, str(jibb)):
 		myLink = base + str(jibb)
-		
+
+# Set default value for true/false flage		
 i = 0
+
+# If a link is found, compare 
 if myLink != "Not Found":
 	print("File found at: " + myLink)
 	webVer = re.findall(ver, str(myLink))
@@ -129,7 +144,9 @@ if myLink != "Not Found":
 		unzipme(outf, wow_addons)
 		print(f"ElvUI has been updated to version {bcolors.BOLD}{bcolors.GREEN}" + str(webVer[0]) + f"{bcolors.ENDC}.")
 else:
+	# Couldn't find the download link on the Tukui website
 	print(f"{bcolors.BOLD}{bcolors.RED}Download link was not found!{bcolors.ENDC}")
 	print(f"{bcolors.BOLD}{bcolors.RED}Could not update ElvUI{bcolors.ENDC}")
 
+# Sleep for 5 seconds so user can read output
 time.sleep(5)
