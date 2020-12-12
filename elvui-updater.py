@@ -15,6 +15,9 @@ import time # Used to sleep
 from tqdm import tqdm # Used for download progress bar
 import json # Used for config file
 
+# Set colors for windows
+os.system("color")
+
 # Colors for highlighting text (not all are used)
 class bcolors:
     BLUE = '\033[94m'
